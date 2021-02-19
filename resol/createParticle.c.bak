@@ -1,0 +1,126 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "mesh.h"
+#include <mpi.h>
+#include "hdf5.h"
+#include "hdf5_hl.h"
+
+void storeParticle(ptclList *head,double x,double weight,double px,double py,double pz);
+
+void createParticles1D(Domain *D,int s)
+{
+   int i,j,k,l,n,gridNum=2;
+   int istart,iend,jstart,jend,kstart,kend;
+   double x,gapX,px,py,pz,maxW;
+   double x0,px0,py0,pz0,weight,W;
+   double Q[2],Px[2],Py[2],Pz[2];
+   double w2[2],px2[2],py2[2],pz2[2],gapX2[2],x2[2];
+
+   char fileName[100],dataName[100];
+   Particle ***particle;
+   particle=D->particle;
+   queList *qHead,*q,*prev,*new,*tmp;
+   ptclList *p,*head;
+
+   qHead=(queList *)malloc(sizeof(queList ));
+
+   int myrank, nTasks;
+   MPI_Comm_size(MPI_COMM_WORLD, &nTasks);
+   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+
+   istart=D->istart; iend=D->iend;
+   jstart=D->jstart; jend=D->jend;
+   kstart=D->kstart; kend=D->kend;
+  
+i=istart; j=jstart; k=kstart; 
+//   for(i=istart; i<iend; i++)
+//     for(j=jstart; j<jend; j++)
+//       for(k=kstart; k<kend; k++) 
+       {
+         Q[0]=D->q1[i][j][k];    Q[1]=D->q2[i][j][k];
+         Px[0]=D->px1[i][j][k];  Px[1]=D->px2[i][j][k];
+         Py[0]=D->py1[i][j][k];  Py[1]=D->py2[i][j][k];
+         Pz[0]=D->pz1[i][j][k];  Pz[1]=D->pz2[i][j][k];
+
+         //first step
+         W=0.0;
+         for(n=0; n<gridNum; n++)  W+=Q[n];
+    
+         if(W>0)
+         {
+           x0=Q[1]/W;
+           px0=(Px[0]+Px[1])/W;
+           py0=(Py[0]+Py[1])/W;
+           pz0=(Pz[0]+Pz[1])/W;
+           //second step
+           w2[0]=Q[0];      w2[1]=Q[1];
+           x2[0]=x0*0.5;    x2[1]=(1.0+x0)*0.5;
+           px2[0]=((Px[0]-Px[1])+(Px[0]+Px[1])*x0)/w2[0];
+           py2[0]=((Py[0]-Py[1])+(Py[0]+Py[1])*x0)/w2[0];
+           pz2[0]=((Pz[0]-Pz[1])+(Pz[0]+Pz[1])*x0)/w2[0];
+           px2[1]=(2*Px[1]-(Px[0]+Px[1])*x0)/w2[1];
+           py2[1]=(2*Py[1]-(Py[0]+Py[1])*x0)/w2[1];
+           pz2[1]=(2*Pz[1]-(Pz[0]+Pz[1])*x0)/w2[1];
+           gapX2[0]=x0*0.5;  gapX2[1]=(1.0-x0)*0.5;
+           for(n=0; n<2; n++)  {
+             new = (queList *)malloc(sizeof(queList ));
+             new->next = qHead->next;
+             qHead->next = new;
+             new->x=x2[n];   new->weight=w2[n]; new->gapX=gapX2[n];
+             new->px=px2[n]; new->py=py2[n];    new->pz=pz2[n];
+           }
+
+           maxW=0.0;
+           for(n=0; n<2; n++) { if(maxW<w2[n])  maxW=w2[n]; else; }
+           n=(int)(maxW/D->targetW);
+  
+           for(l=0; l<n; l++)    {
+             q=qHead->next;
+             while(q)  {
+               x=q->x;   weight=q->weight; gapX=q->gapX;
+               px=q->px; py=q->py;         pz=q->pz;
+               if(weight>D->targetW) {
+printf("myrank=%d,weight=%g, targetW=%g \n",myrank,weight,D->targetW);
+                 q->gapX=gapX*0.5; q->x=x-gapX*0.5; q->weight=weight*0.5;
+//                 new = (queList *)malloc(sizeof(queList ));
+//                 new->x=x+gapX*0.5; new->weight=weight*0.5; new->gapX=gapX*0.5;
+//                 new->px=px; new->py=py; new->pz=pz;
+//                 new->next=q->next;
+//                 q->next=new;
+ //                q=new->next;
+                 q=q->next;
+               }  else {
+                 q=q->next;
+               }
+             }         //End of while(q)
+           }           //End of qHead->next
+
+/*
+         q=qHead->next;
+         head=D->particle[i][j][k].head[s]->pt;
+         while(q)  {
+           storeParticle(head,q->x,q->weight,q->px,q->py,q->pz);
+           qHead->next=q->next;
+           q->next=NULL;
+           free(q);
+           q=qHead->next;
+         }
+*/
+         }  else; 	//End of W>0
+       }	//End of i,j,k     
+
+   free(qHead);
+}
+
+void storeParticle(ptclList *head,double x,double weight,double px,double py,double pz)
+{
+  ptclList *new;
+
+  new = (ptclList *)malloc(sizeof(ptclList ));
+  new->next = head;
+  head = new;
+
+  new->x=x; new->weight=weight;
+  new->px=px; new->py=py; new->pz=pz;
+}
+

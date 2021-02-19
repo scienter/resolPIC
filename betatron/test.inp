@@ -1,0 +1,23 @@
+[Parameter]
+ dimension=2
+
+ minThX=-40e-3
+ maxThX=40e-3
+ numThX=100
+
+ minThY=-20e-3
+ maxThY=20e-3
+ numThY=100
+ 
+ species=0
+
+ lambda=1.0e-6
+ divisionLambda=20 
+ super_particle=5e8
+
+ detector_r=2.0
+ detector_x=0
+ detector_y=0
+ min_energy=0
+ max_energy=20000
+ energy_gap=20

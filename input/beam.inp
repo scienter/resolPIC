@@ -1,0 +1,131 @@
+[Save]
+ field_save=ON
+ particle_save=ON
+ density_save=ON
+ current_save=OFF
+ dump_save=ON
+
+ field_format=TXT
+ particle_format=TXT
+ current_format=TXT
+ density_format=TXT
+ dump_format=HDF	//only HDF
+
+ dump_start=50000
+ dump_save_step=50000
+
+ resolution_change=OFF
+ resolution_high=OFF
+ resolution_low=OFF
+ resolution_change_step=12000
+ resolution_rate_X=1
+ resolution_rate_Y=1
+ resolution_rate_Z=1
+
+
+
+[PML]
+ pml=ON
+ pml_start=1e6
+ left_pml_cells=20
+ right_pml_cells=20
+ up_pml_cells=20
+ down_pml_cells=20
+ front_pml_cells=20
+ back_pml_cells=20
+ pml_r=0.4
+ pml_d=0.2
+
+ period_boundary=OFF
+
+[Domain]
+
+ dimension=2
+ current_order=1	//1,2,3
+ interpolation_order=1	//1,2
+ field_type=Pukhov		//Split,Pukhov,Yee
+
+ max_time=2500		//[minute]
+ max_step=20
+ save_step=20
+ save_start=0
+ center_save_step=1000
+
+ L=1
+ M=1
+ N=1
+ 
+ moving_velocity=0.994
+ moving_domain=ON
+
+ minX=0
+ maxX=40e-6
+ minY=-40e-6
+ maxY=40e-6
+ minZ=-50e-6
+ maxZ=50e-6
+ lambda=4e-6
+ division_lambda=40	// dx is [wavelength/divisionLambda]
+ dt_ratio=0.99		// not for Split
+
+ dy_over_dx = 10		// size for dy
+
+ boost_gamma=1
+ filter=0
+ filter_step=2
+
+
+[Laser]
+ wavelength=0.8e-6
+ a0=0.0
+ rU=4			//number of wave length
+ rD=4
+ flat=0
+ retard=0
+ polarity=2		//2:Ey, 3:Ez
+ loadPositionX=0e-5		//laser start position [m]
+ loadPositionY=0.0e-5		//laser start position [m]
+ beamWaist=10e-6		//in y direction
+ elliptic=1.0			//short in y / long in z
+ focus=20e-6
+
+
+[External]
+ Ex=0
+ Ey=0
+ Ez=0
+ Bx=0
+ By=0
+ Bz=0
+
+
+[Plasma]
+ species=Electron
+ type=Beam
+ density=7e24
+ numberInCell=20
+ startIndex=0           //The starting particle index
+ temperature=0
+ target_weight=0
+ min_px=-100
+
+ energy=0		// [MeV]
+ energy_spread=0	// [%]
+ norm_emittance_y=1		// [mm mrad]
+ norm_emittance_z=1		// [mm mrad]
+ rms_sigma_y=10e-6		// [m]
+ rms_sigma_z=10e-6		// [m]
+ position_y=0e-6	// [m]
+ position_z=0e-6	// [m]
+ focus=200e-6		// [m]
+ 
+ Xnodes=4
+ X0=15e-6
+ X1=20e-6
+ X2=30e-6
+ X3=35e-6
+ Xn0=0
+ Xn1=1
+ Xn2=1
+ Xn3=0
+
